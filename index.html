@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0d1117">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Lawson's Landing — Site Finder</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07080d;
+  --surface: #11151f;
+  --surface-2: #1a1f2e;
+  --border: #2a3142;
+  --border-strong: #3a4358;
+  --text: #e8ecf3;
+  --text-muted: #7a8599;
+  --text-dim: #4a5468;
+
+  --alarm: #ff2e55;
+  --alarm-bright: #ff4d6f;
+  --alarm-dim: rgba(255, 46, 85, 0.15);
+  --signal: #00d9ff;
+  --signal-dim: rgba(0, 217, 255, 0.18);
+  --found: #5eff8a;
+  --found-dim: rgba(94, 255, 138, 0.15);
+  --amber: #ffb84a;
+
+  --meadow: #ff6b9d;
+  --marsh: #4ad6ff;
+  --marine: #ffc83d;
+
+  --grid: rgba(255, 255, 255, 0.03);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  user-select: none;
+  -webkit-user-select: none;
+  overscroll-behavior: none;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 0% 0%, rgba(0, 217, 255, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(255, 46, 85, 0.03) 0%, transparent 40%),
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+}
+
+/* HEADER */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(7, 8, 13, 0.85);
+  backdrop-filter: blur(10px);
+  flex-shrink: 0;
+  padding-top: max(10px, env(safe-area-inset-top));
+}
+.brand { display: flex; align-items: baseline; gap: 10px; }
+.brand-mark {
+  width: 18px; height: 18px;
+  border: 2px solid var(--alarm);
+  border-radius: 50%;
+  position: relative;
+  flex-shrink: 0;
+}
+.brand-mark::before {
+  content: '';
+  position: absolute; inset: 4px;
+  background: var(--alarm);
+  border-radius: 50%;
+  animation: pulse-mark 2s ease-in-out infinite;
+}
+@keyframes pulse-mark {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+.brand-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  color: var(--text);
+}
+.brand-sub {
+  font-size: 9px;
+  color: var(--text-muted);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--found);
+  text-transform: uppercase;
+}
+.status::before {
+  content: '';
+  width: 6px; height: 6px;
+  background: var(--found);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--found);
+  animation: blink 1.5s ease-in-out infinite;
+}
+@keyframes blink { 50% { opacity: 0.3; } }
+
+/* SEARCH */
+.search-zone {
+  padding: 10px 12px 8px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(7, 8, 13, 0.75);
+  backdrop-filter: blur(8px);
+  flex-shrink: 0;
+}
+.search-input-wrap {
+  position: relative;
+  display: flex;
+  gap: 8px;
+}
+.search-input {
+  flex: 1;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 14px 16px 14px 46px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  outline: none;
+  transition: all 0.15s ease;
+  -webkit-appearance: none;
+}
+.search-input::placeholder {
+  color: var(--text-dim);
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  font-size: 14px;
+}
+.search-input:focus {
+  border-color: var(--alarm);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 3px var(--alarm-dim);
+}
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+  font-size: 18px;
+}
+.gps-btn {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  color: var(--signal);
+  width: 50px;
+  cursor: pointer;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.gps-btn:active { transform: scale(0.96); }
+.gps-btn.active {
+  background: var(--signal-dim);
+  border-color: var(--signal);
+  color: var(--signal);
+}
+
+.chips {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'JetBrains Mono', monospace;
+}
+.chip:active { transform: scale(0.96); }
+.chip.active {
+  background: var(--alarm-dim);
+  border-color: var(--alarm);
+  color: var(--alarm);
+}
+.chip-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* MAP */
+.map-zone {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #050608;
+  touch-action: none;
+}
+.map-stage {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+.map-img {
+  display: block;
+  width: 4000px;
+  height: 2479px;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+/* SVG OVERLAY for box outline marker */
+.map-overlay {
+  position: absolute;
+  top: 0; left: 0;
+  width: 4000px;
+  height: 2479px;
+  pointer-events: none;
+}
+
+/* The pulsing box outline — animated via SVG attributes/CSS */
+.target-box {
+  fill: none;
+  stroke: var(--alarm);
+  stroke-width: 4;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 6px var(--alarm)) drop-shadow(0 0 12px var(--alarm));
+  animation: target-pulse 1.4s ease-in-out infinite;
+}
+@keyframes target-pulse {
+  0%, 100% { stroke: #ffffff; stroke-width: 4; opacity: 1; }
+  50% { stroke: var(--alarm); stroke-width: 6; opacity: 0.85; }
+}
+
+/* Outer glow rectangle that expands */
+.target-glow {
+  fill: var(--alarm);
+  opacity: 0.15;
+  animation: target-glow-pulse 1.4s ease-in-out infinite;
+}
+@keyframes target-glow-pulse {
+  0%, 100% { opacity: 0.05; }
+  50% { opacity: 0.25; }
+}
+
+/* Corner brackets that bracket the box */
+.target-corner {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 3;
+  stroke-linecap: square;
+  filter: drop-shadow(0 0 4px var(--alarm));
+}
+
+/* Crosshair lines from the box outward (long thin lines) */
+.target-line {
+  stroke: var(--alarm);
+  stroke-width: 1;
+  opacity: 0.45;
+  stroke-dasharray: 2 4;
+}
+
+/* GPS user marker */
+.gps-pulse {
+  fill: var(--signal);
+  opacity: 0.25;
+  animation: gps-pulse-anim 2s ease-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+@keyframes gps-pulse-anim {
+  0% { opacity: 0.5; transform: scale(0.4); }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+.gps-dot-bg {
+  fill: white;
+}
+.gps-dot {
+  fill: var(--signal);
+  filter: drop-shadow(0 0 8px var(--signal));
+}
+
+/* MAP CONTROLS */
+.map-controls {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 10;
+}
+.map-btn {
+  width: 42px; height: 42px;
+  background: rgba(17, 21, 31, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.map-btn:active { transform: scale(0.92); background: var(--surface-2); }
+
+.map-hud {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  background: rgba(17, 21, 31, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  z-index: 10;
+  font-family: 'JetBrains Mono', monospace;
+}
+.map-hud .v { color: var(--text); font-weight: 700; }
+
+/* INFO PANEL */
+.info-panel {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  background: linear-gradient(180deg, rgba(17, 21, 31, 0.97) 0%, rgba(7, 8, 13, 0.99) 100%);
+  backdrop-filter: blur(14px);
+  border-top: 1px solid var(--alarm);
+  padding: 18px 20px 22px;
+  padding-bottom: max(22px, env(safe-area-inset-bottom));
+  transform: translateY(110%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  z-index: 20;
+  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.6), 0 0 30px var(--alarm-dim);
+}
+.info-panel.show { transform: translateY(0); }
+.info-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.info-label {
+  font-size: 9px;
+  color: var(--alarm);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.info-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 56px;
+  line-height: 0.85;
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
+.info-section {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-top: 4px;
+}
+.info-close {
+  width: 36px; height: 36px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+}
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+.info-cell {
+  background: rgba(0,0,0,0.25);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+.info-cell-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.info-cell-val {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 500;
+  font-family: 'JetBrains Mono', monospace;
+}
+.info-cell-val .unit {
+  color: var(--text-muted);
+  font-size: 10px;
+  margin-left: 4px;
+  letter-spacing: 0.12em;
+}
+
+.no-result {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: var(--alarm);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  background: rgba(7, 8, 13, 0.95);
+  padding: 14px 22px;
+  border: 1px solid var(--alarm);
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  display: none;
+  z-index: 100;
+  box-shadow: 0 0 30px var(--alarm-dim);
+}
+.no-result.show { display: block; animation: shake 0.4s ease; }
+@keyframes shake {
+  0%, 100% { transform: translate(-50%, -50%); }
+  25% { transform: translate(calc(-50% - 6px), -50%); }
+  75% { transform: translate(calc(-50% + 6px), -50%); }
+}
+
+.recents {
+  display: flex;
+  gap: 5px;
+  margin-top: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.recents::-webkit-scrollbar { display: none; }
+.recent {
+  flex-shrink: 0;
+  padding: 5px 10px;
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.05em;
+}
+.recent:active { background: var(--surface); color: var(--text); }
+
+#splash {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  transition: opacity 0.4s;
+}
+#splash.hide { opacity: 0; pointer-events: none; }
+.splash-mark {
+  width: 60px; height: 60px;
+  border: 3px solid var(--alarm);
+  border-radius: 50%;
+  position: relative;
+  margin-bottom: 18px;
+}
+.splash-mark::before {
+  content: '';
+  position: absolute; inset: 8px;
+  border: 2px solid var(--alarm);
+  border-radius: 50%;
+  animation: spin 1.2s linear infinite;
+  border-top-color: transparent;
+  border-right-color: transparent;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.splash-text {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  letter-spacing: 0.15em;
+  color: var(--text);
+}
+.splash-sub {
+  font-size: 9px;
+  color: var(--text-muted);
+  letter-spacing: 0.3em;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+
+.scan-corners {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+.scan-corners::before, .scan-corners::after,
+.corner-tr, .corner-br {
+  content: '';
+  position: absolute;
+  width: 18px; height: 18px;
+  border: 1.5px solid var(--alarm);
+}
+.scan-corners::before { top: 6px; left: 6px; border-right: none; border-bottom: none; }
+.scan-corners::after { bottom: 6px; left: 6px; border-right: none; border-top: none; }
+.corner-tr { top: 6px; right: 6px; border-left: none; border-bottom: none; position: absolute; }
+.corner-br { bottom: 6px; right: 6px; border-left: none; border-top: none; position: absolute; }
+
+.map-zone::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0,
+    transparent 3px,
+    rgba(255, 255, 255, 0.008) 3px,
+    rgba(255, 255, 255, 0.008) 4px
+  );
+  z-index: 1;
+}
+
+@media (max-width: 480px) {
+  .brand-title { font-size: 18px; }
+  .brand-sub { display: none; }
+  .info-num { font-size: 48px; }
+  .map-controls { right: 8px; top: 8px; }
+  .map-hud { left: 8px; top: 8px; padding: 6px 10px; }
+}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="splash-mark"></div>
+  <div class="splash-text">LAWSON'S LANDING</div>
+  <div class="splash-sub">SITE FINDER · INITIALIZING</div>
+</div>
+
+<header>
+  <div class="brand">
+    <div class="brand-mark"></div>
+    <div>
+      <div class="brand-title">SITE FINDER</div>
+      <div class="brand-sub">Lawson's Landing · Tomales Bay</div>
+    </div>
+  </div>
+  <div class="status">OFFLINE READY</div>
+</header>
+
+<div class="search-zone">
+  <div class="search-input-wrap">
+    <span class="search-icon">⊙</span>
+    <input
+      class="search-input"
+      id="searchInput"
+      type="text"
+      inputmode="numeric"
+      pattern="[0-9]*"
+      placeholder="ENTER SITE #"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
+      maxlength="4"
+    />
+    <button class="gps-btn" id="gpsBtn" title="Toggle GPS">⌖</button>
+  </div>
+  <div class="chips" id="chips">
+    <div class="chip active" data-section="ALL">ALL <span style="opacity:0.6">336</span></div>
+    <div class="chip" data-section="M"><span class="chip-dot" style="background:var(--meadow)"></span>MEADOW</div>
+    <div class="chip" data-section="A"><span class="chip-dot" style="background:var(--marsh)"></span>MARSH</div>
+    <div class="chip" data-section="R"><span class="chip-dot" style="background:var(--marine)"></span>MARINE</div>
+  </div>
+  <div class="recents" id="recents"></div>
+</div>
+
+<div class="map-zone" id="mapZone">
+  <div class="scan-corners">
+    <div class="corner-tr"></div>
+    <div class="corner-br"></div>
+  </div>
+  <div class="map-stage" id="mapStage">
+    <img class="map-img" id="mapImg" alt="Lawson's Landing campground map" draggable="false">
+    <svg class="map-overlay" id="mapOverlay" viewBox="0 0 4000 2479" preserveAspectRatio="none"></svg>
+  </div>
+
+  <div class="map-hud" id="hud">
+    <div>ZOOM <span class="v" id="zoomDisp">1.0×</span></div>
+  </div>
+
+  <div class="map-controls">
+    <button class="map-btn" id="zoomIn">+</button>
+    <button class="map-btn" id="zoomOut">−</button>
+    <button class="map-btn" id="reset">⟲</button>
+  </div>
+
+  <div class="no-result" id="noResult">SITE NOT FOUND</div>
+</div>
+
+<div class="info-panel" id="infoPanel">
+  <div class="info-head">
+    <div>
+      <div class="info-label">TARGET ACQUIRED</div>
+      <div class="info-num" id="iNum">000</div>
+      <div class="info-section" id="iSection">—</div>
+    </div>
+    <button class="info-close" id="iClose">✕</button>
+  </div>
+  <div class="info-grid">
+    <div class="info-cell">
+      <div class="info-cell-label">Nearest Restroom</div>
+      <div class="info-cell-val" id="iRest">— <span class="unit">M</span></div>
+    </div>
+    <div class="info-cell">
+      <div class="info-cell-label">Nearest Water</div>
+      <div class="info-cell-val" id="iWater">— <span class="unit">M</span></div>
+    </div>
+    <div class="info-cell">
+      <div class="info-cell-label">Map Coords</div>
+      <div class="info-cell-val" id="iCoords">—</div>
+    </div>
+    <div class="info-cell">
+      <div class="info-cell-label">Status</div>
+      <div class="info-cell-val" id="iStatus" style="color:var(--found)">LOCATED</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/*
+ * Site data format:
+ *   SITES[num] = {c: [cx, cy], b: [x0,y0, x1,y1, x2,y2, x3,y3], s: 'M'|'A'|'R'}
+ *   c = center, b = corners (4 (x,y) pairs flat), s = section code
+ */
+let SITES = {}; // loaded from sites.json
+
+const SECTION_NAMES = { M: 'Meadow View', A: 'Marsh View', R: 'Marine View' };
+const SECTION_COLORS = { M: '#ff6b9d', A: '#4ad6ff', R: '#ffc83d' };
+
+// Amenities (approximate from map)
+const AMENITIES = {
+  restrooms: [
+    [220, 1505, 'M'], [650, 1430, 'M'], [1095, 1665, 'M'], [1370, 1490, 'M'],
+    [2710, 1690, 'A'],
+    [3805, 1370, 'R'], [3500, 1535, 'R'], [3815, 700, 'R'], [3815, 415, 'R'], [3815, 110, 'R'],
+    [3835, 1180, 'R']
+  ],
+  water: [
+    [640, 1420, 'M'], [1450, 1490, 'M'], [2715, 1690, 'A'],
+    [3325, 1395, 'R'], [3815, 530, 'R']
+  ]
+};
+
+const MAP_W = 4000, MAP_H = 2479;
+
+const GEO_BOUNDS = {
+  nw: [38.2360, -122.9790],
+  se: [38.2275, -122.9655]
+};
+
+let scale = 1, tx = 0, ty = 0;
+let activeSection = 'ALL';
+let target = null;
+let gpsActive = false, gpsPos = null, gpsWatchId = null;
+let recents = [];
+
+const stage = document.getElementById('mapStage');
+const zone = document.getElementById('mapZone');
+const overlay = document.getElementById('mapOverlay');
+const input = document.getElementById('searchInput');
+const noResult = document.getElementById('noResult');
+const infoPanel = document.getElementById('infoPanel');
+
+const mapImg = document.getElementById('mapImg');
+mapImg.src = 'map.jpg';
+mapImg.onload = () => {
+  setTimeout(() => {
+    document.getElementById('splash').classList.add('hide');
+    fitToScreen();
+  }, 300);
+};
+mapImg.onerror = () => document.getElementById('splash').classList.add('hide');
+
+function applyTransform() {
+  stage.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+  document.getElementById('zoomDisp').textContent = scale.toFixed(1) + '×';
+}
+
+function fitToScreen() {
+  const rect = zone.getBoundingClientRect();
+  const sx = rect.width / MAP_W;
+  const sy = rect.height / MAP_H;
+  scale = Math.min(sx, sy) * 0.95;
+  tx = (rect.width - MAP_W * scale) / 2;
+  ty = (rect.height - MAP_H * scale) / 2;
+  applyTransform();
+}
+
+function clampPan() {
+  const rect = zone.getBoundingClientRect();
+  const w = MAP_W * scale, h = MAP_H * scale;
+  const margin = 100;
+  if (w < rect.width) tx = (rect.width - w) / 2;
+  else { tx = Math.min(margin, Math.max(rect.width - w - margin, tx)); }
+  if (h < rect.height) ty = (rect.height - h) / 2;
+  else { ty = Math.min(margin, Math.max(rect.height - h - margin, ty)); }
+}
+
+function focusOn(mapX, mapY, targetScale = 2.6, animate = true) {
+  const rect = zone.getBoundingClientRect();
+  const fromScale = scale, fromTx = tx, fromTy = ty;
+  const toScale = targetScale;
+  const toTx = rect.width / 2 - mapX * toScale;
+  const toTy = rect.height / 2 - mapY * toScale;
+
+  if (!animate) {
+    scale = toScale; tx = toTx; ty = toTy;
+    clampPan(); applyTransform(); return;
+  }
+
+  const start = performance.now();
+  const dur = 600;
+  function frame(now) {
+    const t = Math.min(1, (now - start) / dur);
+    const e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    scale = fromScale + (toScale - fromScale) * e;
+    tx = fromTx + (toTx - fromTx) * e;
+    ty = fromTy + (toTy - fromTy) * e;
+    clampPan();
+    applyTransform();
+    if (t < 1) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* TOUCH/MOUSE */
+let pointers = new Map();
+let lastPinchDist = 0;
+let lastPinchCenter = null;
+
+zone.addEventListener('pointerdown', (e) => {
+  zone.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size === 2) {
+    const pts = [...pointers.values()];
+    lastPinchDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+    lastPinchCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
+  }
+});
+zone.addEventListener('pointermove', (e) => {
+  if (!pointers.has(e.pointerId)) return;
+  const prev = pointers.get(e.pointerId);
+  const dx = e.clientX - prev.x;
+  const dy = e.clientY - prev.y;
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size === 1) {
+    tx += dx; ty += dy;
+    clampPan(); applyTransform();
+  } else if (pointers.size === 2) {
+    const pts = [...pointers.values()];
+    const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+    const center = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
+    if (lastPinchDist > 0) {
+      const factor = dist / lastPinchDist;
+      const newScale = Math.max(0.2, Math.min(8, scale * factor));
+      const rect = zone.getBoundingClientRect();
+      const cx = center.x - rect.left, cy = center.y - rect.top;
+      tx = cx - (cx - tx) * (newScale / scale);
+      ty = cy - (cy - ty) * (newScale / scale);
+      scale = newScale;
+      if (lastPinchCenter) {
+        tx += center.x - lastPinchCenter.x;
+        ty += center.y - lastPinchCenter.y;
+      }
+      clampPan(); applyTransform();
+    }
+    lastPinchDist = dist;
+    lastPinchCenter = center;
+  }
+});
+function endPointer(e) {
+  pointers.delete(e.pointerId);
+  if (pointers.size < 2) { lastPinchDist = 0; lastPinchCenter = null; }
+}
+zone.addEventListener('pointerup', endPointer);
+zone.addEventListener('pointercancel', endPointer);
+zone.addEventListener('pointerleave', endPointer);
+
+zone.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const rect = zone.getBoundingClientRect();
+  const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
+  const factor = e.deltaY < 0 ? 1.15 : 0.87;
+  const newScale = Math.max(0.2, Math.min(8, scale * factor));
+  tx = cx - (cx - tx) * (newScale / scale);
+  ty = cy - (cy - ty) * (newScale / scale);
+  scale = newScale;
+  clampPan(); applyTransform();
+}, { passive: false });
+
+document.getElementById('zoomIn').addEventListener('click', () => zoomBy(1.4));
+document.getElementById('zoomOut').addEventListener('click', () => zoomBy(0.7));
+document.getElementById('reset').addEventListener('click', () => { hideInfo(); fitToScreen(); });
+
+function zoomBy(factor) {
+  const rect = zone.getBoundingClientRect();
+  const cx = rect.width / 2, cy = rect.height / 2;
+  const newScale = Math.max(0.2, Math.min(8, scale * factor));
+  tx = cx - (cx - tx) * (newScale / scale);
+  ty = cy - (cy - ty) * (newScale / scale);
+  scale = newScale;
+  clampPan(); applyTransform();
+}
+
+/* OVERLAY: pulsing box marker */
+function renderOverlay() {
+  let svg = '';
+
+  if (gpsPos) {
+    svg += `
+      <circle class="gps-pulse" cx="${gpsPos.x}" cy="${gpsPos.y}" r="60"/>
+      <circle class="gps-dot-bg" cx="${gpsPos.x}" cy="${gpsPos.y}" r="14"/>
+      <circle class="gps-dot" cx="${gpsPos.x}" cy="${gpsPos.y}" r="10"/>
+    `;
+  }
+
+  if (target) {
+    const b = target.b;
+    // Polygon points string
+    const pts = `${b[0]},${b[1]} ${b[2]},${b[3]} ${b[4]},${b[5]} ${b[6]},${b[7]}`;
+
+    // Compute outer "expanded" polygon for glow effect (10% larger from center)
+    const cx = target.c[0], cy = target.c[1];
+    const expand = 1.6;
+    const xPts = [];
+    for (let i = 0; i < 8; i += 2) {
+      const dx = b[i] - cx, dy = b[i+1] - cy;
+      xPts.push(cx + dx * expand, cy + dy * expand);
+    }
+    const xPtsStr = `${xPts[0]},${xPts[1]} ${xPts[2]},${xPts[3]} ${xPts[4]},${xPts[5]} ${xPts[6]},${xPts[7]}`;
+
+    // Bracket corners — small "L" shapes at each corner of the box
+    let corners = '';
+    const bracketLen = 12;
+    for (let i = 0; i < 4; i++) {
+      const px = b[i*2], py = b[i*2+1];
+      // direction toward center
+      const ndx = cx - px, ndy = cy - py;
+      const len = Math.hypot(ndx, ndy);
+      const ux = ndx / len, uy = ndy / len;
+      // perpendicular
+      const px2 = px + ux * bracketLen;
+      const py2 = py + uy * bracketLen;
+      // For the L, draw two short lines from the corner
+      // Direction along the box edge to next corner
+      const ni = (i + 1) % 4;
+      const ex = b[ni*2] - px, ey = b[ni*2+1] - py;
+      const elen = Math.hypot(ex, ey);
+      const eux = ex / elen, euy = ey / elen;
+      const ex2 = px + eux * bracketLen;
+      const ey2 = py + euy * bracketLen;
+      corners += `<polyline class="target-corner" points="${px2},${py2} ${px},${py} ${ex2},${ey2}"/>`;
+    }
+
+    // Long crosshair lines extending out from the box (for visibility at low zoom)
+    const longExt = 200;
+    const ux = (b[2] - b[0]); const uy = (b[3] - b[1]);
+    const ulen = Math.hypot(ux, uy);
+    const uxN = ux / ulen, uyN = uy / ulen;
+    const lx1 = cx - uxN * longExt, ly1 = cy - uyN * longExt;
+    const lx2 = cx + uxN * longExt, ly2 = cy + uyN * longExt;
+    const px = -uyN, py = uxN;
+    const lx3 = cx + px * longExt, ly3 = cy + py * longExt;
+    const lx4 = cx - px * longExt, ly4 = cy - py * longExt;
+
+    svg += `
+      <polygon class="target-glow" points="${xPtsStr}"/>
+      <line class="target-line" x1="${lx1}" y1="${ly1}" x2="${lx2}" y2="${ly2}"/>
+      <line class="target-line" x1="${lx3}" y1="${ly3}" x2="${lx4}" y2="${ly4}"/>
+      <polygon class="target-box" points="${pts}"/>
+      ${corners}
+    `;
+  }
+
+  overlay.innerHTML = svg;
+}
+
+/* SEARCH */
+function dist2(a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+
+function pxToMeters(dx, dy) {
+  const latRange = GEO_BOUNDS.nw[0] - GEO_BOUNDS.se[0];
+  const lngRange = GEO_BOUNDS.se[1] - GEO_BOUNDS.nw[1];
+  const mPerPxX = (lngRange * 87100) / MAP_W;
+  const mPerPxY = (latRange * 111000) / MAP_H;
+  return Math.round(Math.hypot(dx * mPerPxX, dy * mPerPxY));
+}
+
+function findNearestAmenity(x, y, list) {
+  let best = null, bestD = Infinity;
+  for (const a of list) {
+    const d = Math.hypot(a[0] - x, a[1] - y);
+    if (d < bestD) { bestD = d; best = a; }
+  }
+  return best ? { item: best, mDist: pxToMeters(best[0] - x, best[1] - y) } : null;
+}
+
+function compass(dx, dy) {
+  const ang = Math.atan2(-dy, dx) * 180 / Math.PI;
+  const dirs = ['E','NE','N','NW','W','SW','S','SE'];
+  const i = Math.round(((ang + 360) % 360) / 45) % 8;
+  return dirs[i];
+}
+
+function selectSite(num) {
+  const data = SITES[num];
+  if (!data) {
+    showNoResult(`SITE ${num} NOT FOUND`);
+    return;
+  }
+  target = { num, c: data.c, b: data.b, s: data.s };
+
+  if (activeSection !== 'ALL' && activeSection !== data.s) {
+    setSection('ALL');
+  }
+
+  renderOverlay();
+  focusOn(data.c[0], data.c[1], 2.6);
+  showInfo(num, data.c[0], data.c[1], data.s);
+  pushRecent(num);
+}
+
+function showInfo(num, x, y, code) {
+  document.getElementById('iNum').textContent = String(num).padStart(3, '0');
+  const sec = document.getElementById('iSection');
+  sec.innerHTML = `<span class="chip-dot" style="background:${SECTION_COLORS[code]}"></span> ${SECTION_NAMES[code]}`;
+
+  const r = findNearestAmenity(x, y, AMENITIES.restrooms);
+  const w = findNearestAmenity(x, y, AMENITIES.water);
+
+  document.getElementById('iRest').innerHTML = r
+    ? `${r.mDist}<span class="unit">M ${compass(r.item[0]-x, r.item[1]-y)}</span>`
+    : '—';
+  document.getElementById('iWater').innerHTML = w
+    ? `${w.mDist}<span class="unit">M ${compass(w.item[0]-x, w.item[1]-y)}</span>`
+    : '—';
+  document.getElementById('iCoords').textContent = `${Math.round(x)}, ${Math.round(y)}`;
+  infoPanel.classList.add('show');
+}
+
+function hideInfo() {
+  infoPanel.classList.remove('show');
+  target = null;
+  renderOverlay();
+}
+document.getElementById('iClose').addEventListener('click', hideInfo);
+
+function showNoResult(msg) {
+  noResult.textContent = msg;
+  noResult.classList.add('show');
+  if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+  setTimeout(() => noResult.classList.remove('show'), 2000);
+}
+
+input.addEventListener('input', (e) => {
+  const v = e.target.value.replace(/\D/g, '').slice(0, 4);
+  e.target.value = v;
+  if (v.length >= 3 && SITES[v]) selectSite(v);
+});
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (input.value) selectSite(input.value);
+  }
+});
+input.addEventListener('focus', () => input.select());
+
+/* SECTIONS */
+const chips = document.getElementById('chips');
+function setSection(code) {
+  activeSection = code;
+  chips.querySelectorAll('.chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.section === code);
+  });
+  if (code === 'ALL') {
+    fitToScreen();
+  } else {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const [n, d] of Object.entries(SITES)) {
+      if (d.s === code) {
+        if (d.c[0] < minX) minX = d.c[0];
+        if (d.c[0] > maxX) maxX = d.c[0];
+        if (d.c[1] < minY) minY = d.c[1];
+        if (d.c[1] > maxY) maxY = d.c[1];
+      }
+    }
+    const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+    const rect = zone.getBoundingClientRect();
+    const padding = 200;
+    const w = (maxX - minX) + padding * 2;
+    const h = (maxY - minY) + padding * 2;
+    const sc = Math.min(rect.width / w, rect.height / h);
+    focusOn(cx, cy, Math.min(sc, 2.0));
+  }
+}
+chips.addEventListener('click', (e) => {
+  const c = e.target.closest('.chip');
+  if (c) setSection(c.dataset.section);
+});
+
+/* GPS */
+const gpsBtn = document.getElementById('gpsBtn');
+gpsBtn.addEventListener('click', toggleGPS);
+
+function geoToMapPx(lat, lng) {
+  const t = (GEO_BOUNDS.nw[0] - lat) / (GEO_BOUNDS.nw[0] - GEO_BOUNDS.se[0]);
+  const u = (lng - GEO_BOUNDS.nw[1]) / (GEO_BOUNDS.se[1] - GEO_BOUNDS.nw[1]);
+  return [u * MAP_W, t * MAP_H];
+}
+
+function toggleGPS() {
+  if (gpsActive) {
+    if (gpsWatchId !== null) navigator.geolocation.clearWatch(gpsWatchId);
+    gpsActive = false;
+    gpsPos = null;
+    gpsBtn.classList.remove('active');
+    renderOverlay();
+    return;
+  }
+  if (!navigator.geolocation) {
+    showNoResult('GEOLOCATION UNAVAILABLE');
+    return;
+  }
+  gpsBtn.classList.add('active');
+  gpsActive = true;
+  gpsWatchId = navigator.geolocation.watchPosition(
+    (p) => {
+      const [x, y] = geoToMapPx(p.coords.latitude, p.coords.longitude);
+      gpsPos = { x, y, accuracy_m: p.coords.accuracy };
+      renderOverlay();
+    },
+    (err) => {
+      showNoResult('GPS DENIED');
+      gpsBtn.classList.remove('active');
+      gpsActive = false;
+    },
+    { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+  );
+}
+
+/* RECENT SEARCHES */
+function pushRecent(num) {
+  recents = [num, ...recents.filter(n => n !== num)].slice(0, 6);
+  renderRecents();
+}
+function renderRecents() {
+  const el = document.getElementById('recents');
+  if (recents.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = `<span style="font-size:9px;color:var(--text-dim);letter-spacing:0.2em;align-self:center;padding-right:4px">RECENT:</span>` +
+    recents.map(n => `<button class="recent" data-num="${n}">${n}</button>`).join('');
+  el.querySelectorAll('.recent').forEach(b => {
+    b.addEventListener('click', () => {
+      input.value = b.dataset.num;
+      selectSite(b.dataset.num);
+    });
+  });
+}
+
+/* INIT */
+window.addEventListener('resize', () => {
+  if (target) focusOn(target.c[0], target.c[1], scale, false);
+  else fitToScreen();
+});
+document.body.addEventListener('touchmove', (e) => {
+  if (e.target.closest('.search-zone, .info-panel, .recents, .chips')) return;
+  e.preventDefault();
+}, { passive: false });
+zone.addEventListener('contextmenu', (e) => e.preventDefault());
+document.addEventListener('keydown', (e) => {
+  if (e.key === '/' && document.activeElement !== input) {
+    e.preventDefault();
+    input.focus();
+  }
+});
+
+/* PWA: load sites.json and register service worker */
+fetch('sites.json')
+  .then(r => r.json())
+  .then(d => {
+    const sec = { 'Meadow View': 'M', 'Marsh View': 'A', 'Marine View': 'R' };
+    const compact = {};
+    for (const [k, v] of Object.entries(d.sites)) {
+      const corners = v.corners.flat().map(n => Math.round(n));
+      compact[k] = {
+        c: [Math.round(v.cx), Math.round(v.cy)],
+        b: corners,
+        s: sec[v.section] || 'M'
+      };
+    }
+    SITES = compact;
+    console.log('Loaded', Object.keys(SITES).length, 'sites');
+  })
+  .catch(err => console.error('sites.json load failed', err));
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(() => console.log('SW registered'))
+      .catch(e => console.error('SW failed', e));
+  });
+}
+
+</script>
+</body>
+</html>
